@@ -1,6 +1,6 @@
-# Alchemy
+Alchemy enforces builder/verifier separation for agentic coding loops.
 
-Alchemy enforces builder/verifier separation for agentic coding loops. The builder lies. Alchemy makes that structurally impossible.
+Works with Claude and Codex.
 
 ## Install
 
