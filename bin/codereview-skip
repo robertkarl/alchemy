@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-# codereview-skip — create a one-time bypass marker for the pre-push gate.
-# The marker is consumed (deleted) by the hook on the next push.
-
-touch "$(codereview-marker skip-path)"
-echo "Skip marker created. Next git push will bypass the codereview gate."

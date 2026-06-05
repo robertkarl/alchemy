@@ -4,7 +4,6 @@ set -euo pipefail
 # alchemy uninstaller -- removes symlinks.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BIN_DIR="$HOME/bin"
 
 echo "Uninstalling alchemy"
 
@@ -20,15 +19,6 @@ for dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
   done
 done
 
-# -- Bin scripts -----------------------------------------------------------
-for script in "$SCRIPT_DIR"/bin/*; do
-  name="$(basename "$script")"
-  target="$BIN_DIR/$name"
-  if [[ -L "$target" ]]; then
-    rm "$target"
-    echo "  removed: $target"
-  fi
-done
 
 echo ""
 echo "alchemy uninstalled."

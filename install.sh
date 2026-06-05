@@ -5,7 +5,6 @@ set -euo pipefail
 # Supports: Claude Code, Codex CLI.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BIN_DIR="$HOME/bin"
 
 echo "Installing alchemy from $SCRIPT_DIR"
 
@@ -38,18 +37,6 @@ for skill_dir in "$SCRIPT_DIR"/skills/*/; do
   echo "  codex skill: $skill_name -> $target"
 done
 
-# -- Bin scripts -----------------------------------------------------------
-mkdir -p "$BIN_DIR"
-
-for script in "$SCRIPT_DIR"/bin/*; do
-  name="$(basename "$script")"
-  target="$BIN_DIR/$name"
-  if [[ -L "$target" ]]; then
-    rm "$target"
-  fi
-  ln -s "$script" "$target"
-  echo "  bin: $name -> $target"
-done
 
 echo ""
 echo "alchemy installed. Make sure ~/bin is on your PATH."

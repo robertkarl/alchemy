@@ -1,21 +1,28 @@
-## Spec — 2026-06-04 — kar.env bootstrap
+## Spec, 2026-06-04, alchemy
 
-**Goal:** kar.env installs and uninstalls cleanly, skills are discoverable by both Claude Code and Codex, and the verification loop works end-to-end.
+**Goal:** Rename kar.env to alchemy and rebuild around two user entry points (mkspec, alchemize) that enforce builder/verifier separation structurally, not aspirationally.
 
 ### Acceptance Criteria
 
-- [x] `install.sh` symlinks all 7 skills into `~/.claude/skills/` and `~/.agents/skills/`
-- [x] `install.sh` symlinks all bin scripts into `~/bin/` and they are executable
-- [x] `install.sh` registers all 3 hooks in `~/.claude/settings.json` without clobbering existing settings
-- [x] `install.sh` appends Codex instructions to `~/.codex/AGENTS.md` (idempotent, does not duplicate on re-run)
-- [x] `uninstall.sh` removes all symlinks, hook registrations, and Codex instructions created by install
-- [x] `codereview-marker hash` returns a 16-char hex hash when there are uncommitted/unpushed changes
-- [x] `codereview-marker hash` exits 2 when there are no reviewable changes
-- [x] `spec-backlog-apply.sh` handles delete, adopt, purge-origin, and append operations correctly
-- [x] Pre-push hook blocks `git push` when no review marker exists and allows it when marker matches
+- [ ] Repo renamed to alchemy: directory, README, install/uninstall scripts, all internal references
+- [ ] `/mkspec` skill exists: interviews the user one question at a time, reads codebase for context, produces SPEC.md with concrete criteria (bash-verifiable where possible, judgment-based when needed)
+- [ ] `/alchemize` skill exists and runs the full loop autonomously: spawn builder, spawn verifier, write TESTLOG.md on failure, loop up to 20 times, stop on success or exhaustion
+- [ ] Builder agent: reads SPEC.md + TESTLOG.md, implements criteria, checks boxes as it goes, commits along the way, deletes TESTLOG.md after reading it
+- [ ] Verifier agent: unchecks all boxes first, reads only SPEC.md and the codebase, executes bash-verifiable specs, judges subjective specs, re-checks only what actually passes
+- [ ] Verifier never sees TESTLOG.md (builder deletes it before verifier runs)
+- [ ] Alchemize orchestrator never reads source code — only SPEC.md and verifier output
+- [ ] Alchemize orchestrator never uses Edit or Write on source files — only SPEC.md and TESTLOG.md
+- [ ] Old skills (codereview, codefix, security, architect, tester, pr, implement) removed from skills/ and install/uninstall
+- [ ] `install.sh` writes valid Claude Code hook schema (no bare `command` or `if` fields)
+- [ ] Running `/alchemize` on a trivial SPEC.md in a fresh tmux session completes the loop without the orchestrator touching source code — verifiable by reading the session log
 
 ### Context
 
-First spec for kar.env. Derived from zat.env mechanics, stripped of philosophy and agent-specific coupling. Skills are plain markdown with YAML frontmatter — compatible with both Claude Code and Codex skill discovery.
+Alchemy is a ground-up rethink of kar.env (itself derived from zat.env). The core insight: the builder lies. Every agentic loop where the same context builds and verifies has structural bias (zat.env philosophy principle #5). Alchemy enforces separation through context boundaries: the builder dies, the verifier is born cold, TESTLOG.md is ephemeral so the verifier can't develop sympathy for prior attempts.
 
-<!-- SPEC_META: {"date":"2026-06-04","title":"kar.env bootstrap","criteria_total":9,"criteria_met":9} -->
+SPEC.md is the only durable file. It's the clipboard passed between builder and verifier. TESTLOG.md exists only between verifier death and builder birth.
+
+---
+*Prior spec (2026-06-04): kar.env bootstrap + settings fix + implement skill. Superseded by alchemy redesign.*
+
+<!-- SPEC_META: {"date":"2026-06-04","title":"alchemy","criteria_total":11,"criteria_met":0} -->

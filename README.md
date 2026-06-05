@@ -5,8 +5,8 @@ Alchemy enforces builder/verifier separation for agentic coding loops. The build
 ## Install
 
 ```bash
-git clone <repo-url> ~/Code/kar.env
-cd ~/Code/kar.env
+git clone <repo-url> ~/Code/alchemy
+cd ~/Code/alchemy
 ./install.sh
 ```
 
