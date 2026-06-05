@@ -28,7 +28,7 @@ If the diff is empty (e.g., on main), report "Nothing to review" and stop.
 ## Step 2: Read context
 
 For each file touched in the diff, read enough surrounding code to understand the
-change in context. Do not read the entire codebase -- focus on what the diff touches.
+change in context. Do not read the entire codebase. Focus on what the diff touches.
 
 ## Step 3: Review with precision over recall
 

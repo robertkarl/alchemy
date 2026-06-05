@@ -1,6 +1,6 @@
 # Alchemy
 
-Alchemy enforces builder/verifier separation for agentic coding loops. The builder lies -- alchemy makes that structurally impossible.
+Alchemy enforces builder/verifier separation for agentic coding loops. The builder lies. Alchemy makes that structurally impossible.
 
 ## Install
 
@@ -16,10 +16,10 @@ Uninstall with `./uninstall.sh`.
 
 ## Commands
 
-- `/mkspec` -- interview to produce SPEC.md
-- `/alchemize` -- autonomous build-verify-learn loop. Until gold or you run out of mass.
+- `/mkspec`: interview to produce SPEC.md
+- `/alchemize`: autonomous build-verify-learn loop. Until gold or you run out of mass.
 
 ## Files
 
-- `SPEC.md` -- the clipboard
-- `TESTLOG.md` -- ephemeral failure feed
+- `SPEC.md`: the clipboard
+- `TESTLOG.md`: ephemeral failure feed

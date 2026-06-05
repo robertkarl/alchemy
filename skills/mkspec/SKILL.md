@@ -44,7 +44,7 @@ Review the criteria you have gathered. For each criterion, silently ask yourself
 2. Would an adversarial reviewer say this is too vague to check off?
 3. Am I missing an error/edge case the user implied but did not state?
 
-If any criterion fails, propose a revision or addition to the user. Ask them to confirm or reject. One round only -- do not loop.
+If any criterion fails, propose a revision or addition to the user. Ask them to confirm or reject. One round only. Do not loop.
 
 ## Step 4: Write SPEC.md
 

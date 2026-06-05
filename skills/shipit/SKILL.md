@@ -36,7 +36,7 @@ If output is non-empty, stop and tell the user to commit or stash first.
 make test
 ```
 
-If tests fail, stop and report. Do not attempt to fix test failures -- that is
+If tests fail, stop and report. Do not attempt to fix test failures; that is
 the user's job or a separate alchemize run.
 
 ### Gate 3: Alchemize

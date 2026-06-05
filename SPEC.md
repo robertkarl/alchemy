@@ -9,8 +9,8 @@
 - [x] Builder agent: reads SPEC.md + TESTLOG.md, implements criteria, checks boxes as it goes, commits along the way, deletes TESTLOG.md after reading it
 - [x] Verifier agent: unchecks all boxes first, reads only SPEC.md and the codebase, executes bash-verifiable specs, judges subjective specs, re-checks only what actually passes
 - [x] Verifier never sees TESTLOG.md (builder deletes it before verifier runs)
-- [x] Alchemize orchestrator never reads source code — only SPEC.md and verifier output
-- [x] Alchemize orchestrator never uses Edit or Write on source files — only SPEC.md and TESTLOG.md
+- [x] Alchemize orchestrator never reads source code; only SPEC.md and verifier output
+- [x] Alchemize orchestrator never uses Edit or Write on source files; only SPEC.md and TESTLOG.md
 - [x] `/codereview` skill exists: fresh-context agent reviews diff from main, writes report to /tmp/, uses precision-over-recall criteria (80% confidence threshold, empty report is valid, evidence grounded with file:line), severity tiers BLOCK/WARN/NOTE, pass = 0 BLOCKs
 - [x] `/shipit` skill exists and runs the full pipeline: assert git clean, run `make test`, run `/alchemize`, run `/codereview`, if codereview fails feed findings back through `/alchemize` and re-review (shared 20-round cap), rebase onto remote main, push
 - [x] `install.sh` and `uninstall.sh` handle all skills (mkspec, alchemize, codereview, shipit)
@@ -19,7 +19,7 @@
 
 Alchemy is a ground-up rethink of kar.env (itself derived from zat.env). The core insight: the builder lies. Every agentic loop where the same context builds and verifies has structural bias. Alchemy enforces separation through context boundaries: the builder dies, the verifier is born cold, TESTLOG.md is ephemeral so the verifier can't develop sympathy for prior attempts.
 
-Code review follows the same principle — a fresh-context agent reviews the code with no knowledge of the build process. Codereview criteria are borrowed from zat.env: precision over recall, confidence thresholds, evidence grounding.
+Code review follows the same principle. A fresh-context agent reviews the code with no knowledge of the build process. Codereview criteria are borrowed from zat.env: precision over recall, confidence thresholds, evidence grounding.
 
 SPEC.md is the only durable file. TESTLOG.md exists only between verifier death and builder birth.
 

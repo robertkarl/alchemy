@@ -35,7 +35,7 @@ Spawn a fresh agent with this prompt:
 > 2. If TESTLOG.md exists, read it for context on prior failures, then delete it.
 > 3. Implement unchecked criteria. Check each box (`- [x]`) as you complete it.
 > 4. Commit your work along the way with descriptive messages.
-> 5. Do NOT modify SPEC.md's goal, context, or criteria text -- only check boxes.
+> 5. Do NOT modify SPEC.md's goal, context, or criteria text. Only check boxes.
 
 Wait for the builder to finish.
 
