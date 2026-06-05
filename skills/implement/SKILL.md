@@ -9,7 +9,12 @@ argument-hint: ''
 disable-model-invocation: true
 context: fork
 effort: max
-allowed-tools: Agent, Read, Grep, Glob, Bash(*)
+allowed-tools:
+  - Agent
+  - Read
+  - Grep
+  - Glob
+  - Bash(*)
 ---
 
 # /implement
