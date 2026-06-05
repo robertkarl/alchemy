@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# kar.env uninstaller — removes symlinks and hook registrations.
+# alchemy uninstaller -- removes symlinks.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BIN_DIR="$HOME/bin"
 
-echo "Uninstalling kar.env"
+echo "Uninstalling alchemy"
 
-# ── Skills ──────────────────────────────────────────────────────────
+# -- Skills ----------------------------------------------------------------
 for dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
   for skill_dir in "$SCRIPT_DIR"/skills/*/; do
     skill_name="$(basename "$skill_dir")"
@@ -20,7 +20,7 @@ for dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
   done
 done
 
-# ── Bin scripts ─────────────────────────────────────────────────────
+# -- Bin scripts -----------------------------------------------------------
 for script in "$SCRIPT_DIR"/bin/*; do
   name="$(basename "$script")"
   target="$BIN_DIR/$name"
@@ -30,54 +30,5 @@ for script in "$SCRIPT_DIR"/bin/*; do
   fi
 done
 
-# ── Claude Code hooks ──────────────────────────────────────────────
-CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-if [[ -f "$CLAUDE_SETTINGS" ]]; then
-  python3 << PYEOF
-import json
-
-settings_path = "$CLAUDE_SETTINGS"
-hooks_dir = "$SCRIPT_DIR/hooks"
-
-with open(settings_path) as f:
-    settings = json.load(f)
-
-hooks = settings.get("hooks", {})
-
-def is_karenv(h):
-    if hooks_dir in h.get("command", ""):
-        return True
-    for sub in h.get("hooks", []):
-        if hooks_dir in sub.get("command", ""):
-            return True
-    return False
-
-for key in ["PreToolUse", "PostToolUse"]:
-    if key in hooks:
-        hooks[key] = [h for h in hooks[key] if not is_karenv(h)]
-        if not hooks[key]:
-            del hooks[key]
-
-if hooks:
-    settings["hooks"] = hooks
-elif "hooks" in settings:
-    del settings["hooks"]
-
-with open(settings_path, "w") as f:
-    json.dump(settings, f, indent=2)
-    f.write("\n")
-
-print("  hooks: removed from", settings_path)
-PYEOF
-fi
-
-# ── Codex instructions ─────────────────────────────────────────────
-CODEX_AGENTS="$HOME/.codex/AGENTS.md"
-if [[ -f "$CODEX_AGENTS" ]]; then
-  # Remove the kar.env block
-  sed -i '' '/<!-- kar\.env -->/,/<!-- \/kar\.env -->/d' "$CODEX_AGENTS" 2>/dev/null || true
-  echo "  codex: removed instructions from $CODEX_AGENTS"
-fi
-
 echo ""
-echo "kar.env uninstalled. Reviewer config left at ~/.config/claude-reviewers/.env"
+echo "alchemy uninstalled."
