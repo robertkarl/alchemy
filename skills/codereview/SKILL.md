@@ -13,19 +13,14 @@ allowed-tools:
 
 # /codereview
 
-Adversarial review of changes before push. No Edit or Write access — verifier only.
-
-## Arguments
-
-- Empty: full review
-- `external [range]`: external reviewers only, no mutations
+Adversarial review of changes before push. No Edit or Write access, verifier only.
 
 ## Full Review Pipeline
 
 ### Step 1: Read Context
 
 Read from project root (if they exist):
-- `CODEREVIEW.md` (prior findings, accepted risks — downgrade accepted to NOTE, re-report unresolved at original severity)
+- `CODEREVIEW.md` (prior findings, accepted risks. Downgrade accepted to NOTE, re-report unresolved at original severity)
 - `SECURITY.md`, `TESTING.md`, `SPEC.md` (most recent entry, metadata footer)
 
 ### Step 2: Gather Changes
@@ -54,12 +49,12 @@ Detect test infrastructure. Run tests, record baseline pass/fail. No tests = fin
 
 ### Step 4: Review (6 dimensions)
 
-1. **Correctness** — bugs, off-by-one, null handling, race conditions
-2. **Code quality** — dead code, duplication, abstraction level
-3. **Solution approach** — right approach? simpler alternative?
-4. **Spaghetti detection** — mixed concerns in one commit
-5. **Regression risk** — could break existing? adequate tests?
-6. **Spec alignment** — (only if SPEC.md exists) advances or contradicts criteria? NOTE-only.
+1. Correctness: bugs, off-by-one, null handling, race conditions
+2. Code quality: dead code, duplication, abstraction level
+3. Solution approach: right approach? simpler alternative?
+4. Spaghetti detection: mixed concerns in one commit
+5. Regression risk: could break existing? adequate tests?
+6. Spec alignment: (only if SPEC.md exists) advances or contradicts criteria? NOTE-only.
 
 Light review: dimensions 1 and 3 only.
 Refresh review: all 6 on focus set, only 5 on already-reviewed.
@@ -80,18 +75,18 @@ Check if SECURITY.md covers current state (SECURITY_META commit + scanned_files)
 
 ### Step 5.5: External Reviewers (full only)
 
-If `review-external.sh` is on PATH, pipe diff to it. Capture stdout (findings) and stderr (cost log). Not on PATH = skip silently. **Run once only — not during fix cycles.**
+If `review-external.sh` is on PATH, pipe diff to it. Capture stdout (findings) and stderr (cost log). Not on PATH = skip silently. Run once only, not during fix cycles.
 
 ### Step 6: Report
 
 **Severities:**
-- **BLOCK** — Must fix before push. Bugs, data loss, security vulns, broken tests, spaghetti.
-- **WARN** — Should fix. Missing error handling, untested critical paths.
-- **NOTE** — Informational. Never auto-fixed.
+- BLOCK: must fix before push. Bugs, data loss, security vulns, broken tests, spaghetti.
+- WARN: should fix. Missing error handling, untested critical paths.
+- NOTE: informational. Never auto-fixed.
 
 **Finding format:**
 ```
-[SEVERITY] file:line — description
+[SEVERITY] file:line description
   Evidence: [specific code or pattern]
   Suggested fix: [concrete recommendation]
 ```
@@ -117,7 +112,7 @@ Do NOT write if BLOCKs remain or tests regressed.
 ### Step 9: Update CODEREVIEW.md
 
 ```markdown
-## Review — YYYY-MM-DD (commit: abc1234)
+## Review, YYYY-MM-DD (commit: abc1234)
 **Summary:** [1-2 sentences]
 **External reviewers:** [cost log or "None configured."]
 ### Findings

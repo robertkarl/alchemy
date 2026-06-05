@@ -15,11 +15,6 @@ allowed-tools:
 
 Two modes: `audit` (review test strategy) and `design` (write test architecture contract).
 
-## Arguments
-
-- Empty = audit mode
-- `design` = design mode
-
 ## Audit Mode
 
 ### Step 1: Read Context
@@ -32,19 +27,19 @@ Scan for: test files, test config, CI/CD, coverage config, pre-commit/pre-push h
 
 ### Step 3: Assess (9 dimensions)
 
-1. Test coverage strategy — right things tested? SPEC.md criteria with no test = finding
-2. Test automation maturity — auto vs manual? single command?
-3. Automatic test execution — pre-commit, CI on PR, deploy gates
-4. CI/CD integration — every push/PR? branch protection?
-5. Test framework choices — appropriate, current, unnecessary sprawl
-6. Fixture and data management — creation, sharing, isolation
-7. Flaky test patterns — sleep(), timing deps, order-dependent, shared mutable state
-8. Missing test categories — only what's actually needed
-9. Development loop cadence — fast inner loop <15s, documented cadence
+1. Test coverage strategy: right things tested? SPEC.md criteria with no test = finding
+2. Test automation maturity: auto vs manual? single command?
+3. Automatic test execution: pre-commit, CI on PR, deploy gates
+4. CI/CD integration: every push/PR? branch protection?
+5. Test framework choices: appropriate, current, unnecessary sprawl
+6. Fixture and data management: creation, sharing, isolation
+7. Flaky test patterns: sleep(), timing deps, order-dependent, shared mutable state
+8. Missing test categories: only what's actually needed
+9. Development loop cadence: fast inner loop <15s, documented cadence
 
 ### Step 4: Report
 
-Classify as BLOCK / WARN / NOTE. Format: `[SEVERITY] dimension — description` with current state and recommendation.
+Classify as BLOCK / WARN / NOTE. Format: `[SEVERITY] dimension: description` with current state and recommendation.
 
 ### Step 5: Update TESTING.md
 
@@ -89,7 +84,7 @@ Proportionality: greenfield ~50 lines, one framework. Growing: two tiers. Mature
 
 One BACKLOG.md entry per concrete step. Four fields: short name, description, why deferred, revisit criteria. Plus `Origin: tester design YYYY-MM-DD`.
 
-### D.5.5: Pre-apply Checklist (VISIBLE — emit before any file mutation)
+### D.5.5: Pre-apply Checklist (VISIBLE, emit before any file mutation)
 
 1. Signals fingerprint
 2. Contract shape + line count

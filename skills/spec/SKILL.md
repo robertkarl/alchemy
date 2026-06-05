@@ -15,10 +15,6 @@ allowed-tools:
 
 Write verifiable acceptance criteria to SPEC.md. One unit of work per entry.
 
-## Arguments
-
-`/spec [new | propose | plan [slug] | backlog <desc> | backlog clear | <description>]`
-
 ## Step 1: Read Context
 
 Read from project root (if they exist):
@@ -108,7 +104,7 @@ Include recommend-delete in proposal as `### Backlog Sweep`. Do NOT delete yet.
 ### Append (`/spec backlog <description>`)
 
 1. Read SPEC.md and BACKLOG.md. Check for duplicates.
-2. Pressure test (3 gates — stop on any failure):
+2. Pressure test (3 gates, stop on any failure):
    - Is description specific? (names a what and where)
    - Can a revisit criterion be derived?
    - Is why-deferred concrete?
@@ -150,14 +146,14 @@ Only add/revise criteria if a question reveals a genuine gap.
 ## Step 4: SPEC.md Format
 
 ```markdown
-## Spec — YYYY-MM-DD — [short title]
+## Spec, YYYY-MM-DD, [short title]
 
 **Goal:** [1-2 sentences]
 
 ### Acceptance Criteria
 
-- [ ] Criterion 1 — concrete, verifiable
-- [ ] Criterion 2 — concrete, verifiable
+- [ ] Criterion 1
+- [ ] Criterion 2
 
 ### Context
 

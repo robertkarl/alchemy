@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Pull request workflow — create, status, inspect, merge, list. Terminal node.
+description: Pull request workflow. Terminal node.
 disable-model-invocation: true
 allowed-tools:
   - Bash(*)
@@ -11,18 +11,7 @@ allowed-tools:
 
 # /pr
 
-PR workflow via `gh` CLI. Read-only — no Write or Edit. Terminal node.
-
-## Arguments
-
-| Input | Mode |
-|-------|------|
-| empty | create PR for current branch |
-| `<branch-name>` | create feature branch, then PR |
-| `status` | current branch's PR status |
-| `<number>` or `<url>` | inspect specific PR |
-| `merge` | merge current branch's PR |
-| `list` | list open PRs |
+PR workflow via `gh` CLI. Read-only, no Write or Edit. Terminal node.
 
 ## Prerequisites
 

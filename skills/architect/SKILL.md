@@ -11,11 +11,7 @@ allowed-tools:
 
 # /architect
 
-Architecture review. Terminal node — produces no persistent file.
-
-## Arguments
-
-`/architect [deps | ops | <topic>]` — focused deep-dive on a specific dimension. Empty = full review.
+Architecture review. Terminal node, produces no persistent file.
 
 ## Algorithm
 
@@ -38,18 +34,18 @@ Read CODEREVIEW.md, SECURITY.md, TESTING.md, SPEC.md (most recent entry, metadat
 If focused review requested, evaluate only relevant dimensions; one-line note for rest.
 
 **Design Quality:**
-1. Structural clarity — navigability, separation of responsibilities
-2. Appropriate complexity — proportional to problem
-3. Scale alignment — architecture fits current/near-term scale
-4. Dependency health — justified, maintained, pinned, license risks, bloat
-5. Extensibility — probable evolution paths, not hypothetical
+1. Structural clarity: navigability, separation of responsibilities
+2. Appropriate complexity: proportional to problem
+3. Scale alignment: architecture fits current/near-term scale
+4. Dependency health: justified, maintained, pinned, license risks, bloat
+5. Extensibility: probable evolution paths, not hypothetical
 
 **Strategic Fitness:**
-6. Consistency — uniform patterns across codebase
-7. Business goal alignment — architecture serves stated goals
-8. Technology selection — evidence of friction (build failures, missing ecosystem, abandonment)
-9. Operational fitness — build pipeline, deployment, observability, config management
-10. Developer experience — clone-to-running time, local dev complexity, feedback loops
+6. Consistency: uniform patterns across codebase
+7. Business goal alignment: architecture serves stated goals
+8. Technology selection: evidence of friction (build failures, missing ecosystem, abandonment)
+9. Operational fitness: build pipeline, deployment, observability, config management
+10. Developer experience: clone-to-running time, local dev complexity, feedback loops
 
 ### Step 4: Pressure Test
 

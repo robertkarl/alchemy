@@ -1,8 +1,8 @@
 # Kar.env
 
-Kar.env is a minimal harness for verification-first coding.
+Inspired by [zat.env](https://github.com/peterzat/zat.env).
 
-Works with Claude Code, Codex, and any coding agent that reads markdown.
+Kar.env is a minimal harness for verification-first coding. Works with Claude Code, Codex, and any coding agent that reads markdown.
 
 ## Install
 
@@ -15,6 +15,16 @@ cd ~/Code/kar.env
 Symlinks skills into `~/.claude/skills/` and `~/.agents/skills/`, helper scripts into `~/bin/`, and registers hooks in Claude Code settings.
 
 Uninstall with `./uninstall.sh`.
+
+## Workflow
+
+1. `/spec` to define what done looks like
+2. Build it
+3. `/spec` again to check off criteria
+4. `/codereview` before pushing (the pre-push hook enforces this)
+5. `/pr` to ship
+
+`/security`, `/architect`, and `/tester` are available any time but not required by the loop.
 
 ## Skills
 
