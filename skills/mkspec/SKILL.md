@@ -1,7 +1,6 @@
 ---
 name: mkspec
 description: Interview the user to produce SPEC.md with concrete acceptance criteria
-disable-model-invocation: true
 context: fork
 effort: max
 allowed-tools:

@@ -3,7 +3,6 @@ name: alchemize
 description: >-
   Autonomous build-verify-learn loop. Spawn builder, spawn verifier, learn from
   failures, repeat until gold or you run out of mass.
-disable-model-invocation: true
 context: fork
 effort: max
 allowed-tools:
