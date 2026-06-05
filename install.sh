@@ -74,30 +74,47 @@ hooks = settings.get("hooks", {})
 
 # Pre-push codereview gate
 pre_tool = hooks.get("PreToolUse", [])
-# Remove any existing kar.env hooks
-pre_tool = [h for h in pre_tool if "kar.env" not in h.get("command", "")]
+# Remove any existing kar.env hooks (check both old bare-command and new nested format)
+def is_karenv(h):
+    # Old format: bare "command" field
+    if "kar.env" in h.get("command", ""):
+        return True
+    # New format: nested "hooks" array
+    for sub in h.get("hooks", []):
+        if "kar.env" in sub.get("command", ""):
+            return True
+    return False
+
+pre_tool = [h for h in pre_tool if not is_karenv(h)]
 
 pre_tool.append({
     "matcher": "Bash",
-    "if": "Bash(git push*)",
-    "command": f"{hooks_dir}/pre-push-codereview.sh"
+    "hooks": [{
+        "type": "command",
+        "command": f"{hooks_dir}/pre-push-codereview.sh"
+    }]
 })
 
 pre_tool.append({
     "matcher": "Bash",
-    "if": "Bash(source .venv*)",
-    "command": f"{hooks_dir}/allow-venv-source.sh"
+    "hooks": [{
+        "type": "command",
+        "command": f"{hooks_dir}/allow-venv-source.sh"
+    }]
 })
 
 hooks["PreToolUse"] = pre_tool
 
 # Post-tool exit plan mode
 post_tool = hooks.get("PostToolUse", [])
-post_tool = [h for h in post_tool if "kar.env" not in h.get("command", "")]
+post_tool = [h for h in post_tool if not is_karenv(h)]
 
 post_tool.append({
     "matcher": "ExitPlanMode",
-    "command": f"{hooks_dir}/post-tool-exit-plan-mode.sh"
+    "hooks": [{
+        "type": "command",
+        "command": f"{hooks_dir}/post-tool-exit-plan-mode.sh"
+    }]
 })
 
 hooks["PostToolUse"] = post_tool

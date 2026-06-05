@@ -44,9 +44,17 @@ with open(settings_path) as f:
 
 hooks = settings.get("hooks", {})
 
+def is_karenv(h):
+    if hooks_dir in h.get("command", ""):
+        return True
+    for sub in h.get("hooks", []):
+        if hooks_dir in sub.get("command", ""):
+            return True
+    return False
+
 for key in ["PreToolUse", "PostToolUse"]:
     if key in hooks:
-        hooks[key] = [h for h in hooks[key] if hooks_dir not in h.get("command", "")]
+        hooks[key] = [h for h in hooks[key] if not is_karenv(h)]
         if not hooks[key]:
             del hooks[key]
 
