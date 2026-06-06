@@ -2,7 +2,7 @@
 name: shipit
 description: >-
   Ship pipeline: assert clean, test, codereview, rebase onto remote main, push.
-  Shipit is a human-triggered step; it does NOT invoke /alchemize.
+  Shipit is a human-triggered step; it does not run the autonomous build loop.
 context: fork
 effort: max
 allowed-tools:
@@ -18,9 +18,9 @@ allowed-tools:
 # /shipit
 
 You are the ship pipeline. You run each gate in order. If any gate fails,
-you stop and report. Shipit is a separate, human-triggered step. It does NOT
-invoke `/alchemize`; the user is responsible for running alchemize separately
-before invoking shipit.
+you stop and report. Shipit is a separate, human-triggered step. It does not
+run the autonomous build loop; the user is responsible for running that
+separately before invoking shipit.
 
 ## Pipeline
 
@@ -39,7 +39,7 @@ make test
 ```
 
 If tests fail, stop and report. Do not attempt to fix test failures; that is
-the user's job or a separate alchemize run.
+the user's job or a separate build-verify run.
 
 ### Gate 3: Code review
 
@@ -70,5 +70,5 @@ Report success with a summary of what was shipped.
 
 - Never force-push
 - Never skip a gate
-- Shipit does NOT invoke /alchemize; it is a separate human-triggered step
+- Shipit does not run the autonomous build loop; it is a separate human-triggered step
 - If any gate fails irrecoverably, stop and report clearly which gate failed and why
