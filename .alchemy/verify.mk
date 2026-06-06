@@ -1,113 +1,58 @@
-# Alchemy v2 verification plan
-# Run: make -f .alchemy/verify.mk alchemy-verify
-# Exits 0 if all criteria pass, non-zero on first failure.
-
 SHELL := /bin/bash
-.ONESHELL:
 .SHELLFLAGS := -euo pipefail -c
+.PHONY: alchemy-verify criterion-1 criterion-2 criterion-3 criterion-4 criterion-5 criterion-6 criterion-7
 
 SKILLS_DIR := skills
-SPEC := SPEC.md
 
-alchemy-verify: check-mkspec check-encode check-separation check-fulfill check-verify check-orchestrator check-loop-behavior check-agent-spawn check-pipeline-skills check-installer
-	@echo "ALL CRITERIA PASSED"
+# Criterion 1: /alchemize orchestrates two loops with a codereview pass between them:
+#   inner loop (fulfill/verify until pass), then codereview (once), then final loop (fulfill/verify until pass)
+criterion-1:
+	@echo "Checking: /alchemize orchestrates two loops with codereview pass between them"
+	@grep -qi 'codereview\|code.review\|code_review' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference codereview phase"; exit 1; }
+	@grep -qi 'inner.*loop\|first.*loop\|phase 3\|loop.*1\|initial.*loop' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not describe the inner (first) loop"; exit 1; }
+	@grep -qi 'final.*loop\|second.*loop\|phase 5\|loop.*2\|post.*review.*loop' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not describe the final (second) loop"; exit 1; }
+	@python3 -c "import re,sys; text=open('$(SKILLS_DIR)/alchemize/SKILL.md').read(); cr=[m.start() for m in re.finditer(r'codereview|code.review',text,re.I)]; lp=[m.start() for m in re.finditer(r'fulfill.*verify|verify.*fulfill|loop',text,re.I)]; sys.exit(1) if not cr else None; before=[p for p in lp if p<cr[0]]; after=[p for p in lp if p>cr[0]]; sys.exit('FAIL: no loop before codereview') if not before else None; sys.exit('FAIL: no loop after codereview') if not after else None"
+	@echo "PASS: criterion-1"
 
-# 1. /mkspec produces SPEC.md with checkbox criteria; supports interactive + autonomous
-check-mkspec:
-	@echo "--- check-mkspec ---"
-	@test -f $(SKILLS_DIR)/mkspec/SKILL.md || { echo "FAIL: mkspec skill not found"; exit 1; }
-	@grep -q '\- \[ \]' $(SKILLS_DIR)/mkspec/SKILL.md || { echo "FAIL: mkspec SKILL.md does not show checkbox format"; exit 1; }
-	@grep -qi 'autonomous\|auto.*mode\|skip.*interview\|non.interactive' $(SKILLS_DIR)/mkspec/SKILL.md || { echo "FAIL: mkspec does not mention autonomous mode"; exit 1; }
-	@grep -qi 'interview\|interactive\|ask.*question' $(SKILLS_DIR)/mkspec/SKILL.md || { echo "FAIL: mkspec does not mention interactive mode"; exit 1; }
-	@echo "PASS"
+# Criterion 2: /codereview writes its report to CODE_REVIEW.md in the project root
+#   (in addition to or instead of /tmp/codereview-*.md)
+criterion-2:
+	@echo "Checking: /codereview writes report to CODE_REVIEW.md in project root"
+	@grep -q 'CODE_REVIEW\.md' $(SKILLS_DIR)/codereview/SKILL.md || { echo "FAIL: codereview SKILL.md does not mention CODE_REVIEW.md"; exit 1; }
+	@echo "PASS: criterion-2"
 
-# 2. /encode skill exists; produces .alchemy/verify.mk with alchemy-verify target
-check-encode:
-	@echo "--- check-encode ---"
-	@test -f $(SKILLS_DIR)/encode/SKILL.md || { echo "FAIL: encode skill not found"; exit 1; }
-	@grep -q 'verify\.mk' $(SKILLS_DIR)/encode/SKILL.md || { echo "FAIL: encode SKILL.md does not reference verify.mk"; exit 1; }
-	@grep -q 'alchemy.*verify' $(SKILLS_DIR)/encode/SKILL.md || { echo "FAIL: encode SKILL.md does not reference alchemy-verify target"; exit 1; }
-	@echo "PASS"
+# Criterion 3: /fulfill reads CODE_REVIEW.md if it exists and addresses review findings alongside SPEC.md criteria
+criterion-3:
+	@echo "Checking: /fulfill reads CODE_REVIEW.md if it exists"
+	@grep -q 'CODE_REVIEW\.md' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill SKILL.md does not mention CODE_REVIEW.md"; exit 1; }
+	@grep -qi 'read.*CODE_REVIEW\|CODE_REVIEW.*read\|review.*finding\|address.*review\|code review' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not describe reading or addressing code review findings"; exit 1; }
+	@echo "PASS: criterion-3"
 
-# 3. .alchemy/ structurally separated; fulfill agent forbidden from touching it
-check-separation:
-	@echo "--- check-separation ---"
-	@test -d .alchemy || { echo "FAIL: .alchemy/ directory does not exist"; exit 1; }
-	@# Check that fulfill skill explicitly forbids .alchemy access
-	@grep -qi '\.alchemy\|verify\.mk' $(SKILLS_DIR)/fulfill/SKILL.md && \
-		grep -qi 'forbid\|never\|must not\|do not\|prohibited\|off.limits' $(SKILLS_DIR)/fulfill/SKILL.md || \
-		{ echo "FAIL: fulfill SKILL.md does not explicitly forbid .alchemy/ access"; exit 1; }
-	@echo "PASS"
+# Criterion 4: The code review pass runs at most once per alchemize invocation;
+#   alchemize does not re-enter codereview after the final loop
+criterion-4:
+	@echo "Checking: code review runs at most once per alchemize invocation"
+	@grep -qi 'once\|at most once\|single.*review\|one.*review\|no.*re-enter\|does not.*re-enter\|exactly once' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not state codereview runs at most once"; exit 1; }
+	@echo "PASS: criterion-4"
 
-# 4. /fulfill skill exists with correct behavior
-check-fulfill:
-	@echo "--- check-fulfill ---"
-	@test -f $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill skill not found"; exit 1; }
-	@grep -q 'SPEC.md' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not reference SPEC.md"; exit 1; }
-	@grep -q 'TESTLOG.md' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not reference TESTLOG.md"; exit 1; }
-	@grep -q 'delete\|remove\|rm' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not mention deleting TESTLOG.md"; exit 1; }
-	@grep -qi 'commit' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not mention committing"; exit 1; }
-	@grep -q '\- \[x\]' $(SKILLS_DIR)/fulfill/SKILL.md || { echo "FAIL: fulfill does not mention checking boxes"; exit 1; }
-	@echo "PASS"
+# Criterion 5: CODE_REVIEW.md lives in the project root, next to SPEC.md
+criterion-5:
+	@echo "Checking: CODE_REVIEW.md lives in project root next to SPEC.md"
+	@grep -q 'CODE_REVIEW\.md' $(SKILLS_DIR)/alchemize/SKILL.md || grep -q 'CODE_REVIEW\.md' $(SKILLS_DIR)/codereview/SKILL.md || { echo "FAIL: neither alchemize nor codereview mention CODE_REVIEW.md"; exit 1; }
+	@echo "PASS: criterion-5"
 
-# 5. /verify skill exists; unchecks all, runs make -f .alchemy/verify.mk, re-checks passing
-check-verify:
-	@echo "--- check-verify ---"
-	@test -f $(SKILLS_DIR)/verify/SKILL.md || { echo "FAIL: verify skill not found"; exit 1; }
-	@grep -q 'uncheck\|Uncheck\|\- \[ \]' $(SKILLS_DIR)/verify/SKILL.md || { echo "FAIL: verify does not mention unchecking boxes"; exit 1; }
-	@grep -q 'make.*-f.*\.alchemy/verify\.mk' $(SKILLS_DIR)/verify/SKILL.md || { echo "FAIL: verify does not run make -f .alchemy/verify.mk"; exit 1; }
-	@grep -qi 'commit' $(SKILLS_DIR)/verify/SKILL.md || { echo "FAIL: verify does not mention committing SPEC.md"; exit 1; }
-	@echo "PASS"
+# Criterion 6: /shipit does NOT invoke /alchemize; it is a separate human-triggered step
+criterion-6:
+	@echo "Checking: /shipit does NOT invoke /alchemize"
+	@if grep -qi '/alchemize\|run.*alchemize\|spawn.*alchemize\|invoke.*alchemize' $(SKILLS_DIR)/shipit/SKILL.md; then echo "FAIL: shipit still invokes or references /alchemize"; exit 1; fi
+	@echo "PASS: criterion-6"
 
-# 6. /alchemize orchestrator: mkspec->encode->[fulfill<->verify] loop, never reads source or .alchemy/
-check-orchestrator:
-	@echo "--- check-orchestrator ---"
-	@test -f $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize skill not found"; exit 1; }
-	@grep -q 'mkspec' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference mkspec phase"; exit 1; }
-	@grep -q 'encode' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference encode phase"; exit 1; }
-	@grep -q 'fulfill' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference fulfill phase"; exit 1; }
-	@grep -q 'verify\|verif' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference verify phase"; exit 1; }
-	@grep -qi 'never.*read.*source\|never.*source.*code\|NEVER.*read.*source' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not forbid reading source code"; exit 1; }
-	@echo "PASS"
+# Criterion 7: README.md documents all 8 skills: mkspec, encode, fulfill, verify, alchemize, codereview, shipit, alchemy-worker
+criterion-7:
+	@echo "Checking: README.md documents all 8 skills"
+	@test -f README.md || { echo "FAIL: README.md does not exist"; exit 1; }
+	@for skill in mkspec encode fulfill verify alchemize codereview shipit alchemy-worker; do grep -qi "$$skill" README.md || { echo "FAIL: README.md does not mention $$skill"; exit 1; }; done
+	@echo "PASS: criterion-7"
 
-# 7. On failure: TESTLOG.md written, loop back to fulfill; spec+tests never modified
-check-loop-behavior:
-	@echo "--- check-loop-behavior ---"
-	@grep -q 'TESTLOG.md' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference TESTLOG.md"; exit 1; }
-	@grep -qi 'iteration\|round\|loop' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not mention iteration tracking"; exit 1; }
-	@grep -q '20' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not mention 20-iteration cap"; exit 1; }
-	@# Spec and test plan must not be modified during loop
-	@grep -qi 'lock\|immutable\|never.*modif\|do not.*modif\|not.*modified' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not state spec/tests are locked during loop"; exit 1; }
-	@echo "PASS"
-
-# 8. Fulfill spawned via /alchemy-worker in isolated worktree; .alchemy/ deleted before launch
-check-agent-spawn:
-	@echo "--- check-agent-spawn ---"
-	@# alchemy-worker skill must exist
-	@test -f $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker skill not found"; exit 1; }
-	@# alchemy-worker must delete .alchemy/ from worktree
-	@grep -q 'rm.*-rf.*\.alchemy' $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker does not delete .alchemy/ from worktree"; exit 1; }
-	@# alchemy-worker must not have proposal/approval ceremony
-	@grep -qi 'no.*proposal\|no.*approval\|execute.*immediately\|immediately' $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker still has proposal/approval ceremony"; exit 1; }
-	@# alchemize must reference alchemy-worker for fulfill
-	@grep -q 'alchemy-worker' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not use alchemy-worker for fulfill"; exit 1; }
-	@echo "PASS"
-
-# 9. codereview and shipit updated for four-phase structure
-check-pipeline-skills:
-	@echo "--- check-pipeline-skills ---"
-	@test -f $(SKILLS_DIR)/codereview/SKILL.md || { echo "FAIL: codereview skill not found"; exit 1; }
-	@test -f $(SKILLS_DIR)/shipit/SKILL.md || { echo "FAIL: shipit skill not found"; exit 1; }
-	@echo "PASS"
-
-# 10. install.sh and uninstall.sh handle all skills
-check-installer:
-	@echo "--- check-installer ---"
-	@test -f install.sh || { echo "FAIL: install.sh not found"; exit 1; }
-	@test -f uninstall.sh || { echo "FAIL: uninstall.sh not found"; exit 1; }
-	@# The installer uses a glob over skills/*, so it picks up any new skill dirs automatically.
-	@# Verify the expected skill directories exist.
-	@for skill in mkspec encode fulfill verify alchemize alchemy-worker codereview shipit; do \
-		test -d $(SKILLS_DIR)/$$skill || { echo "FAIL: skills/$$skill directory missing"; exit 1; }; \
-	done
-	@echo "PASS"
+alchemy-verify: criterion-1 criterion-2 criterion-3 criterion-4 criterion-5 criterion-6 criterion-7
+	@echo "All criteria passed."
