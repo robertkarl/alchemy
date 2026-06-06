@@ -27,7 +27,16 @@ and report success. If unchecked criteria remain, continue.
 
 ### Step 2: Spawn BUILDER agent
 
-Spawn a fresh agent with this prompt:
+Use the **Agent tool** to spawn the builder. The exact call:
+
+```
+Agent(prompt: "<the prompt below>", description: "Builder agent", mode: "auto")
+```
+
+Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate, `claude -p`,
+or any other mechanism. Just call the Agent tool as shown above.
+
+Spawn with this prompt:
 
 > You are the BUILDER. Your job is to implement unchecked acceptance criteria.
 >
@@ -41,16 +50,30 @@ Wait for the builder to finish.
 
 ### Step 3: Spawn VERIFIER agent
 
-Spawn a fresh agent with this prompt:
+Use the **Agent tool** to spawn the verifier. The exact call:
+
+```
+Agent(prompt: "<the prompt below>", description: "Verifier agent", mode: "auto")
+```
+
+Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate, `claude -p`,
+or any other mechanism. Just call the Agent tool as shown above.
+
+Spawn with this prompt:
 
 > You are the VERIFIER. You have ZERO knowledge of prior attempts. You have never
 > seen TESTLOG.md. Judge purely on what you find in the codebase right now.
 >
 > 1. Read SPEC.md. Uncheck ALL boxes (`- [ ]`) first.
 > 2. Read the codebase to understand what exists.
-> 3. For each criterion: if it specifies a bash command, run it. If it is a
->    judgment call, judge it honestly and critically.
+> 3. For each criterion: if it specifies a bash command, run it. If it describes
+>    runtime behavior, logs, or program output, you MUST actually run the program
+>    and check that the expected output exists. Never pass a runtime criterion
+>    based on code inspection alone. If it is a judgment call, judge it honestly
+>    and critically.
 > 4. Check only criteria that actually pass. Leave failures unchecked.
+>    If you cannot verify a criterion (e.g. requires a GUI app running), leave it
+>    unchecked and note why in your commit message.
 > 5. Commit the updated SPEC.md with message: "Verify spec criteria".
 
 Wait for the verifier to finish.

@@ -64,7 +64,8 @@ Format:
 ```
 
 Rules:
-- Checkbox format, each independently verifiable
+- EVERY criterion MUST use markdown checkbox format: `- [ ]` (unchecked). No exceptions. Do not use plain `- ` bullets.
+- Each criterion independently verifiable
 - Ordered most to least important
 - Bash-verifiable criteria include the exact command or check in parentheses where practical
 - No implementation steps disguised as criteria
