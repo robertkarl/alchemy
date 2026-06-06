@@ -54,6 +54,16 @@ After reading, delete TESTLOG.md:
 rm -f TESTLOG.md
 ```
 
+## Step 2b: Read CODE_REVIEW.md (if present)
+
+If `CODE_REVIEW.md` exists in the project root, read it for code review findings.
+Address any BLOCK or WARN items from the review alongside your SPEC.md criteria
+work. These findings represent issues identified by a fresh-context reviewer and
+should be treated as additional implementation targets.
+
+Do NOT delete CODE_REVIEW.md; it persists for the verifier and orchestrator to
+reference.
+
 ## Step 3: Implement
 
 For each unchecked criterion, in order:

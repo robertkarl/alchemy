@@ -43,7 +43,11 @@ An empty report is a valid outcome. Do not manufacture findings to look thorough
 
 ## Step 4: Write report
 
-Write the report to `/tmp/codereview-{timestamp}.md` using this format:
+Write the report to BOTH of the following locations:
+1. `CODE_REVIEW.md` in the project root (next to SPEC.md)
+2. `/tmp/codereview-{timestamp}.md` (archival copy)
+
+Use this format:
 
 ```markdown
 ## Code Review: {short description}

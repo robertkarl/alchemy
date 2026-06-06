@@ -65,14 +65,51 @@ Agent(
 
 If `.alchemy/verify.mk` already exists, skip this phase.
 
-## Phase 3: fulfill <-> verify loop (max 20 iterations)
+## Phase 3: Inner loop, codereview, final loop (max 20 iterations total)
 
-### Step 1: Read SPEC.md
+This phase has three stages. The iteration counter is shared across both loops;
+the combined total must not exceed 20.
+
+### Stage A: Inner fulfill/verify loop
+
+Run the fulfill/verify loop (described below) until all SPEC.md criteria pass.
+
+### Stage B: Code review (runs at most once)
+
+After Stage A converges, spawn a codereview agent exactly once:
+
+```
+Agent(
+  prompt: "You are the code reviewer. Run /codereview in autonomous mode. After producing the review report, also write the report to CODE_REVIEW.md in the project root.",
+  description: "codereview agent",
+  mode: "auto"
+)
+```
+
+Wait for the codereview agent to finish. Verify that `CODE_REVIEW.md` exists in
+the project root.
+
+Do NOT re-enter Stage B after Stage C. The codereview pass happens at most once
+per alchemize invocation.
+
+### Stage C: Final fulfill/verify loop
+
+Re-enter the fulfill/verify loop. The fulfill agent will read `CODE_REVIEW.md`
+alongside SPEC.md and TESTLOG.md, addressing any review findings. The loop runs
+until verify confirms all criteria still pass.
+
+When the final loop converges, report success with a summary of total iterations.
+
+---
+
+### Fulfill/verify loop (used by both Stage A and Stage C)
+
+#### Step 1: Read SPEC.md
 
 Read `SPEC.md` from the project root. If every criterion is checked (`- [x]`),
-stop and report success. If unchecked criteria remain, continue.
+the current loop has converged; proceed to the next stage (or finish).
 
-### Step 2: Spawn FULFILL agent via /alchemy-worker
+#### Step 2: Spawn FULFILL agent via /alchemy-worker
 
 The fulfill agent MUST run in an isolated worktree so it cannot access `.alchemy/`.
 Use the `/alchemy-worker` skill to spawn it.
@@ -85,9 +122,10 @@ Invoke `/alchemy-worker` with:
 >
 > 1. Read SPEC.md as your brief.
 > 2. If TESTLOG.md exists, read it for context on prior failures, then delete it.
-> 3. Implement unchecked criteria. Check each box (`- [x]`) as you complete it.
-> 4. Commit your work along the way with descriptive messages.
-> 5. Do NOT modify SPEC.md's goal, context, or criteria text. Only check boxes.
+> 3. If CODE_REVIEW.md exists, read it and address any review findings.
+> 4. Implement unchecked criteria. Check each box (`- [x]`) as you complete it.
+> 5. Commit your work along the way with descriptive messages.
+> 6. Do NOT modify SPEC.md's goal, context, or criteria text. Only check boxes.
 >
 > The .alchemy/ directory does not exist in your worktree. Do not look for it.
 
@@ -97,7 +135,7 @@ immediately with no proposal/approval ceremony.
 
 Wait for the worker to land its changes back to the main branch.
 
-### Step 3: Spawn VERIFY agent
+#### Step 3: Spawn VERIFY agent
 
 The verifier runs in the main worktree (where `.alchemy/verify.mk` lives).
 
@@ -124,10 +162,10 @@ Spawn with this prompt:
 
 Wait for the verifier to finish.
 
-### Step 4: Evaluate
+#### Step 4: Evaluate
 
-Read SPEC.md. If all criteria are checked, stop and report success with a summary
-of iterations taken.
+Read SPEC.md. If all criteria are checked, the current loop has converged;
+proceed to the next stage (Stage B after inner loop, or finish after final loop).
 
 If unchecked criteria remain, write TESTLOG.md with:
 - Which criteria failed
@@ -136,10 +174,10 @@ If unchecked criteria remain, write TESTLOG.md with:
 
 Then go to Step 1.
 
-### Step 5: Exhaustion
+#### Step 5: Exhaustion
 
-If you reach 20 iterations without full success, stop and report which criteria
-still fail and why. Do not loop forever.
+If you reach 20 total iterations (across both loops), stop and report which
+criteria still fail and why. Do not loop forever.
 
 ## Rules
 
