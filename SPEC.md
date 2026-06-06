@@ -21,10 +21,10 @@ criteria still pass. The final loop converges when verify passes.
 
 ## Acceptance Criteria
 
-- [ ] `/alchemize` orchestrates two loops with a codereview pass between them: inner loop (fulfill/verify until pass), then codereview (once), then final loop (fulfill/verify until pass)
-- [ ] `/codereview` writes its report to `CODE_REVIEW.md` in the project root (in addition to or instead of `/tmp/codereview-*.md`)
-- [ ] `/fulfill` reads `CODE_REVIEW.md` if it exists and addresses review findings alongside SPEC.md criteria
-- [ ] The code review pass runs at most once per alchemize invocation; alchemize does not re-enter codereview after the final loop
-- [ ] `CODE_REVIEW.md` lives in the project root, next to SPEC.md
-- [ ] `/shipit` does NOT invoke `/alchemize`; it is a separate human-triggered step
-- [ ] `README.md` documents all 8 skills: mkspec, encode, fulfill, verify, alchemize, codereview, shipit, alchemy-worker
+- [x] `/alchemize` orchestrates two loops with a codereview pass between them: inner loop (fulfill/verify until pass), then codereview (once), then final loop (fulfill/verify until pass)
+- [x] `/codereview` writes its report to `CODE_REVIEW.md` in the project root (in addition to or instead of `/tmp/codereview-*.md`)
+- [x] `/fulfill` reads `CODE_REVIEW.md` if it exists and addresses review findings alongside SPEC.md criteria
+- [x] The code review pass runs at most once per alchemize invocation; alchemize does not re-enter codereview after the final loop
+- [x] `CODE_REVIEW.md` lives in the project root, next to SPEC.md
+- [x] `/shipit` does NOT invoke `/alchemize`; it is a separate human-triggered step
+- [x] `README.md` documents all 8 skills: mkspec, encode, fulfill, verify, alchemize, codereview, shipit, alchemy-worker
