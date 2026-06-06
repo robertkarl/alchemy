@@ -13,7 +13,12 @@ allowed-tools:
 
 # /mkspec
 
-Interview the user one question at a time to produce SPEC.md with concrete, verifiable acceptance criteria. This is the entry point for writing specs.
+Produce SPEC.md with concrete, verifiable acceptance criteria. Supports two modes:
+
+- **Interactive mode** (default): Interview the user one question at a time.
+- **Autonomous mode**: Read the codebase and any provided prompt context, then
+  generate the spec without user interaction. Activated when the prompt that
+  launched you contains "autonomous" or you are running inside an Agent call.
 
 ## Step 1: Orient
 
@@ -25,7 +30,9 @@ Read from the project root (skip missing files silently):
 
 Hold this context. Do not dump it back to the user.
 
-## Step 2: Interview (one question at a time)
+## Step 2: Gather requirements
+
+### Interactive mode
 
 Ask these questions sequentially. Wait for the user's answer before asking the next. Never batch questions.
 
@@ -35,6 +42,15 @@ Ask these questions sequentially. Wait for the user's answer before asking the n
 4. **Anything out of scope?** Identify boundaries so criteria stay focused.
 
 After question 4, move to Step 3. You may ask a fifth follow-up if earlier answers left a gap, but do not exceed five questions total.
+
+### Autonomous mode
+
+Skip the interview. Instead:
+
+1. Read the codebase thoroughly (directory structure, READMEs, config files, key source files).
+2. Read any context provided in the prompt that spawned you.
+3. Infer the goal, outcomes, and verification methods from the codebase and prompt.
+4. Proceed directly to Step 3.
 
 ## Step 3: Pressure-test
 

@@ -39,10 +39,11 @@ make test
 If tests fail, stop and report. Do not attempt to fix test failures; that is
 the user's job or a separate alchemize run.
 
-### Gate 3: Alchemize
+### Gate 3: Alchemize (four-phase pipeline)
 
-Run `/alchemize` to build and verify the spec. If alchemize exhausts its rounds,
-stop and report which criteria still fail.
+Run `/alchemize` to execute the full four-phase pipeline: mkspec (once), encode
+(once), then the fulfill/verify loop. If alchemize exhausts its rounds, stop and
+report which criteria still fail.
 
 ### Gate 4: Code review
 

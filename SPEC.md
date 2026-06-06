@@ -1,29 +1,27 @@
-## Spec, 2026-06-04, alchemy
+## Spec, 2026-06-05, alchemy v2: four-phase loop
 
-**Goal:** Alchemy enforces builder/verifier separation for agentic coding loops via two user entry points (mkspec, alchemize) plus a ship pipeline (shipit) that gates on code review with fresh context.
+**Goal:** Rearchitect alchemy's core loop into four discrete phases (mkspec, encode, fulfill, verify) where the spec and executable test plan are written once and locked, the builder never sees the tests, and failures loop only between fulfill and verify.
 
 ### Acceptance Criteria
 
-- [x] `/mkspec` skill exists: interviews the user one question at a time, reads codebase for context, produces SPEC.md with concrete criteria (bash-verifiable where possible, judgment-based when needed)
-- [x] `/alchemize` skill exists and runs the build/verify loop: spawn builder, spawn verifier, write TESTLOG.md on failure, loop up to 20 rounds, stop on success or exhaustion
-- [x] Builder agent: reads SPEC.md + TESTLOG.md, implements criteria, checks boxes as it goes, commits along the way, deletes TESTLOG.md after reading it
-- [x] Verifier agent: unchecks all boxes first, reads only SPEC.md and the codebase, executes bash-verifiable specs, judges subjective specs, re-checks only what actually passes
-- [x] Verifier never sees TESTLOG.md (builder deletes it before verifier runs)
-- [x] Alchemize orchestrator never reads source code; only SPEC.md and verifier output
-- [x] Alchemize orchestrator never uses Edit or Write on source files; only SPEC.md and TESTLOG.md
-- [x] `/codereview` skill exists: fresh-context agent reviews diff from main, writes report to /tmp/, uses precision-over-recall criteria (80% confidence threshold, empty report is valid, evidence grounded with file:line), severity tiers BLOCK/WARN/NOTE, pass = 0 BLOCKs
-- [x] `/shipit` skill exists and runs the full pipeline: assert git clean, run `make test`, run `/alchemize`, run `/codereview`, if codereview fails feed findings back through `/alchemize` and re-review (shared 20-round cap), rebase onto remote main, push
-- [x] `install.sh` and `uninstall.sh` handle all skills (mkspec, alchemize, codereview, shipit)
+- [x] `/mkspec` skill produces SPEC.md with `- [ ]` checkbox criteria; supports both interactive (interview) and autonomous (agent reads codebase + prompt) modes
+- [x] `/encode` skill exists: reads SPEC.md, produces `.alchemy/verify.mk` with an `alchemy-verify` target that exits 0 on pass and non-zero on fail; supports both interactive and autonomous modes
+- [x] `.alchemy/` directory is structurally separated from source code; the fulfill agent is explicitly forbidden from reading or modifying anything in `.alchemy/`
+- [x] `/fulfill` skill exists: reads SPEC.md and TESTLOG.md (if present), implements unchecked criteria, checks boxes as it goes, commits along the way, deletes TESTLOG.md after reading; never touches `.alchemy/`
+- [x] `/verify` skill exists: fresh-context agent unchecks all boxes, runs `make -f .alchemy/verify.mk alchemy-verify`, re-checks only criteria that actually pass, commits updated SPEC.md
+- [x] `/alchemize` orchestrator runs the full pipeline: mkspec (once) -> encode (once) -> [fulfill <-> verify] loop (max 20 iterations); orchestrator never reads source code or `.alchemy/verify.mk`
+- [x] On verify failure, orchestrator writes TESTLOG.md with failure details and iteration number, then loops back to fulfill; spec and test plan are never modified during the loop
+- [x] All agents are spawned via the Agent tool with `mode: "auto"`; no `team_name`, no `subagent_type`, no TeamCreate, no `claude -p`
+- [x] `/codereview` and `/shipit` skills are updated to work with the new four-phase structure
+- [x] `install.sh` and `uninstall.sh` handle all skills (mkspec, encode, fulfill, verify, alchemize, codereview, shipit)
 
 ### Context
 
-Alchemy is a ground-up rethink of kar.env (itself derived from zat.env). The core insight: the builder lies. Every agentic loop where the same context builds and verifies has structural bias. Alchemy enforces separation through context boundaries: the builder dies, the verifier is born cold, TESTLOG.md is ephemeral so the verifier can't develop sympathy for prior attempts.
+This is alchemy v2. The core insight from v1 remains: the builder lies. But v1 conflated spec-writing with test-writing, and the verifier had to both design and execute verification. V2 splits these concerns: the spec says *what*, the encoded test plan says *how to check*, and neither is modified once the build loop starts. The fulfill agent never sees the test plan (`.alchemy/` is off-limits), so it cannot learn to game the tests. Failures only result in more implementation attempts, never in weakened specs or tests.
 
-Code review follows the same principle. A fresh-context agent reviews the code with no knowledge of the build process. Codereview criteria are borrowed from zat.env: precision over recall, confidence thresholds, evidence grounding.
-
-SPEC.md is the only durable file. TESTLOG.md exists only between verifier death and builder birth.
+The loop: mkspec (once) -> encode (once) -> [fulfill <-> verify] until gold or exhaustion (20 rounds).
 
 ---
-*Prior spec (2026-06-04): kar.env bootstrap + settings fix + implement skill. Superseded by alchemy redesign.*
+*Prior spec (2026-06-04): alchemy v1 with builder/verifier separation. Superseded by four-phase rearchitecture.*
 
-<!-- SPEC_META: {"date":"2026-06-04","title":"alchemy","criteria_total":10,"criteria_met":10} -->
+<!-- SPEC_META: {"date":"2026-06-05","title":"alchemy v2: four-phase loop","criteria_total":10,"criteria_met":10} -->

@@ -14,8 +14,9 @@ allowed-tools:
 
 # /codereview
 
-You are a fresh-context code reviewer. You have ZERO knowledge of the build process.
-You review only the diff and the codebase as it exists right now.
+You are a fresh-context code reviewer. You have ZERO knowledge of the build process
+(mkspec, encode, fulfill, or verify phases). You review only the diff and the
+codebase as it exists right now.
 
 ## Step 1: Gather the diff
 
