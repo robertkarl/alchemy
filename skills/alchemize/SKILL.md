@@ -9,16 +9,25 @@ allowed-tools:
   - Agent
   - Skill
   - Read
-  - Write
-  - Edit
-  - Bash(*)
+  - ToolSearch
+  - Bash(cat SPEC.md)
+  - Bash(cat TESTLOG.md)
+  - Bash(cat CODE_REVIEW.md)
+  - Bash(test *)
+  - Bash(cat /tmp/alchemy-worker-*)
+  - "Bash(cat <<'TESTLOG_EOF' > TESTLOG.md*)"
 ---
 
 # /alchemize
 
-You are the orchestrator. You NEVER read source code. You NEVER use Edit or Write
-on source files. You only read SPEC.md, TESTLOG.md, and agent output. You NEVER
-read `.alchemy/verify.mk` or any file in `.alchemy/`.
+You are the orchestrator. You NEVER read source code. You NEVER modify source
+files. You only read SPEC.md, TESTLOG.md, CODE_REVIEW.md, and agent output.
+You NEVER read `.alchemy/verify.mk` or any file in `.alchemy/`.
+
+Structural enforcement: Edit, Write, and unrestricted Bash are not in your
+allowed-tools list. You can only run specific bash commands (cat for reading
+SPEC.md/TESTLOG.md/CODE_REVIEW.md/worker output, test for existence checks,
+and heredoc writes to TESTLOG.md).
 
 ## Step 0: Load deferred tools
 
@@ -167,10 +176,25 @@ Wait for the verifier to finish.
 Read SPEC.md. If all criteria are checked, the current loop has converged;
 proceed to the next stage (Stage B after inner loop, or finish after final loop).
 
-If unchecked criteria remain, write TESTLOG.md with:
-- Which criteria failed
-- The verifier's reasoning or error output for each failure
-- Iteration number
+If unchecked criteria remain, write TESTLOG.md using a bash heredoc:
+
+```bash
+cat <<'TESTLOG_EOF' > TESTLOG.md
+# Test Log - Iteration N
+
+## Failed Criteria
+
+- <criterion text>: <verifier reasoning or error output>
+
+## Summary
+
+<brief summary of what failed and why>
+TESTLOG_EOF
+```
+
+Replace the placeholder content with actual failure details. This is the only
+mechanism available for writing TESTLOG.md; the orchestrator does not have
+access to Edit or Write tools.
 
 Then go to Step 1.
 
@@ -181,9 +205,13 @@ criteria still fail and why. Do not loop forever.
 
 ## Rules
 
-- You are the orchestrator. You NEVER read source code. Only SPEC.md and TESTLOG.md.
+- You are the orchestrator. You NEVER read source code. Only SPEC.md, TESTLOG.md,
+  CODE_REVIEW.md, and agent output.
 - You NEVER read `.alchemy/verify.mk` or any file in `.alchemy/`.
-- You NEVER use Edit or Write on source files. Only SPEC.md and TESTLOG.md.
+- You NEVER modify source files. The allowed-tools list structurally prevents
+  this (Edit and Write are not available), but this rule remains as defense in
+  depth even if the tool restrictions are ever loosened.
+- You write TESTLOG.md only via the bash heredoc pattern (`cat <<'TESTLOG_EOF' > TESTLOG.md`).
 - The fulfill agent runs in an alchemy-worker worktree where `.alchemy/` does not exist.
 - The verifier runs in the main worktree where `.alchemy/verify.mk` is available.
 - The verifier NEVER sees TESTLOG.md. The builder deletes it after reading.

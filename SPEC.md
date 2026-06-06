@@ -1,30 +1,12 @@
-# Spec: Code Review Loop in Alchemize
+## Spec, 2026-06-05, Structural enforcement for alchemize orchestrator
 
-## Goal
+**Goal:** Add structural enforcement so the alchemize orchestrator thread physically cannot modify files beyond SPEC.md, TESTLOG.md, and CODE_REVIEW.md, replacing the current honor-system LLM instructions with tool-level restrictions.
 
-Add a code review pass to the alchemize pipeline. After the inner fulfill/verify
-loop converges, alchemize spawns a code review agent that writes findings to
-`CODE_REVIEW.md`. Then alchemize re-enters the fulfill/verify loop so the builder
-can address the review findings. The review pass happens at most once.
+### Acceptance Criteria
 
-## Architecture
-
-```
-/mkspec -> /encode -> [ /fulfill <-> /verify ] -> /codereview -> [ /fulfill <-> /verify ] -> DONE
-                       ~~~~ inner loop ~~~~                       ~~~~ final loop ~~~~
-```
-
-The inner loop runs until all SPEC.md criteria pass. Then `/codereview` runs once
-and writes `CODE_REVIEW.md` to the project root. Then the final loop runs: fulfill
-reads CODE_REVIEW.md alongside SPEC.md and TESTLOG.md, and verify confirms all
-criteria still pass. The final loop converges when verify passes.
-
-## Acceptance Criteria
-
-- [x] `/alchemize` orchestrates two loops with a codereview pass between them: inner loop (fulfill/verify until pass), then codereview (once), then final loop (fulfill/verify until pass)
-- [x] `/codereview` writes its report to `CODE_REVIEW.md` in the project root (in addition to or instead of `/tmp/codereview-*.md`)
-- [x] `/fulfill` reads `CODE_REVIEW.md` if it exists and addresses review findings alongside SPEC.md criteria
-- [x] The code review pass runs at most once per alchemize invocation; alchemize does not re-enter codereview after the final loop
-- [x] `CODE_REVIEW.md` lives in the project root, next to SPEC.md
-- [x] `/shipit` does NOT invoke `/alchemize`; it is a separate human-triggered step
-- [x] `README.md` documents all 8 skills: mkspec, encode, fulfill, verify, alchemize, codereview, shipit, alchemy-worker
+- [x] The alchemize SKILL.md `allowed-tools` list does NOT include `Edit` or `Write` (verify by parsing the YAML frontmatter of `skills/alchemize/SKILL.md`)
+- [x] The alchemize SKILL.md `allowed-tools` list replaces `Bash(*)` with a restricted set of bash commands that cannot modify source files; specifically `Bash(cat SPEC.md)`, `Bash(cat TESTLOG.md)`, `Bash(cat CODE_REVIEW.md)`, `Bash(test *)`, `Bash(cat /tmp/alchemy-worker-*)`, and `Bash(cat <<*TESTLOG.md)` or equivalent write-to-TESTLOG pattern
+- [x] The alchemize SKILL.md retains `Agent`, `Skill`, `Read`, and `ToolSearch` in its allowed-tools so it can still spawn sub-agents and read files
+- [x] The alchemize SKILL.md instructions for writing TESTLOG.md use a mechanism compatible with the restricted bash patterns (e.g., a specific bash glob pattern for writing TESTLOG.md rather than using Write or Edit)
+- [x] The alchemize SKILL.md prose rules still state the orchestrator must not read source code or .alchemy/ files; the structural enforcement supplements but does not replace the prose rules
+- [x] Existing orchestrator functionality is preserved: the alchemize skill can still spawn mkspec, encode, fulfill (via alchemy-worker), verify, and codereview agents, read SPEC.md, write TESTLOG.md, and check .alchemy/verify.mk existence
