@@ -7,6 +7,7 @@ context: conversation
 effort: max
 allowed-tools:
   - Agent
+  - Skill
   - Read
   - Write
   - Edit
@@ -19,15 +20,15 @@ You are the orchestrator. You NEVER read source code. You NEVER use Edit or Writ
 on source files. You only read SPEC.md, TESTLOG.md, and agent output. You NEVER
 read `.alchemy/verify.mk` or any file in `.alchemy/`.
 
-## Step 0: Load the Agent tool
+## Step 0: Load deferred tools
 
-The Agent tool is a deferred tool. You MUST fetch it before using it:
+The Agent and Skill tools may be deferred. Fetch them before starting:
 
 ```
-ToolSearch(query: "select:Agent", max_results: 1)
+ToolSearch(query: "select:Agent,Skill", max_results: 2)
 ```
 
-Do this FIRST, before anything else. Once loaded, Agent is callable like any other tool.
+Do this FIRST, before anything else.
 
 ## Phase 1: mkspec (once)
 
@@ -41,8 +42,6 @@ Agent(
   mode: "auto"
 )
 ```
-
-Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate or `claude -p`.
 
 If SPEC.md already exists with criteria, skip this phase.
 
@@ -64,8 +63,6 @@ Agent(
 )
 ```
 
-Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate or `claude -p`.
-
 If `.alchemy/verify.mk` already exists, skip this phase.
 
 ## Phase 3: fulfill <-> verify loop (max 20 iterations)
@@ -75,48 +72,41 @@ If `.alchemy/verify.mk` already exists, skip this phase.
 Read `SPEC.md` from the project root. If every criterion is checked (`- [x]`),
 stop and report success. If unchecked criteria remain, continue.
 
-### Step 2: Spawn FULFILL agent
+### Step 2: Spawn FULFILL agent via /orc
 
-Use the **Agent tool** to spawn the builder. The exact call:
+The fulfill agent MUST run in an isolated worktree so it cannot access `.alchemy/`.
+Use the `/orc` skill (from the korc plugin) to spawn it.
 
-```
-Agent(
-  prompt: "<the prompt below>",
-  description: "Fulfill agent (builder)",
-  mode: "auto"
-)
-```
+Invoke `/orc` with a prompt like:
 
-Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate, `claude -p`,
-or any other mechanism. Just call the Agent tool as shown above.
-
-Spawn with this prompt:
-
-> You are the BUILDER. Your job is to implement unchecked acceptance criteria.
+> Spawn an orc to fulfill the alchemy spec.
+>
+> Task: implement the unchecked acceptance criteria in SPEC.md.
 >
 > 1. Read SPEC.md as your brief.
 > 2. If TESTLOG.md exists, read it for context on prior failures, then delete it.
 > 3. Implement unchecked criteria. Check each box (`- [x]`) as you complete it.
 > 4. Commit your work along the way with descriptive messages.
 > 5. Do NOT modify SPEC.md's goal, context, or criteria text. Only check boxes.
-> 6. CRITICAL: Do NOT read, write, list, or access any file under .alchemy/ for any reason. The .alchemy/ directory is completely off limits.
+>
+> The .alchemy/ directory does not exist in your worktree. Do not look for it.
 
-Wait for the builder to finish.
+The orc will work in a worktree where `.alchemy/` has been deleted, providing
+structural enforcement that the builder cannot see the test plan.
+
+Wait for the orc to land its changes back to the main branch.
 
 ### Step 3: Spawn VERIFY agent
 
-Use the **Agent tool** to spawn the verifier. The exact call:
+The verifier runs in the main worktree (where `.alchemy/verify.mk` lives).
 
 ```
 Agent(
   prompt: "<the prompt below>",
-  description: "Verify agent (verifier)",
+  description: "Verify agent",
   mode: "auto"
 )
 ```
-
-Do NOT set `team_name` or `subagent_type`. Do NOT use TeamCreate, `claude -p`,
-or any other mechanism. Just call the Agent tool as shown above.
 
 Spawn with this prompt:
 
@@ -155,6 +145,8 @@ still fail and why. Do not loop forever.
 - You are the orchestrator. You NEVER read source code. Only SPEC.md and TESTLOG.md.
 - You NEVER read `.alchemy/verify.mk` or any file in `.alchemy/`.
 - You NEVER use Edit or Write on source files. Only SPEC.md and TESTLOG.md.
+- The fulfill agent runs in a korc worktree where `.alchemy/` does not exist.
+- The verifier runs in the main worktree where `.alchemy/verify.mk` is available.
 - The verifier NEVER sees TESTLOG.md. The builder deletes it after reading.
 - The builder checks boxes as progress markers. The verifier unchecks everything
   and re-verifies from scratch.
