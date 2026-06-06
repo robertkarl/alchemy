@@ -72,14 +72,14 @@ If `.alchemy/verify.mk` already exists, skip this phase.
 Read `SPEC.md` from the project root. If every criterion is checked (`- [x]`),
 stop and report success. If unchecked criteria remain, continue.
 
-### Step 2: Spawn FULFILL agent via /orc
+### Step 2: Spawn FULFILL agent via /alchemy-worker
 
 The fulfill agent MUST run in an isolated worktree so it cannot access `.alchemy/`.
-Use the `/orc` skill (from the korc plugin) to spawn it.
+Use the `/alchemy-worker` skill to spawn it.
 
-Invoke `/orc` with a prompt like:
+Invoke `/alchemy-worker` with:
 
-> Spawn an orc to fulfill the alchemy spec.
+> slug: fulfill
 >
 > Task: implement the unchecked acceptance criteria in SPEC.md.
 >
@@ -91,10 +91,11 @@ Invoke `/orc` with a prompt like:
 >
 > The .alchemy/ directory does not exist in your worktree. Do not look for it.
 
-The orc will work in a worktree where `.alchemy/` has been deleted, providing
-structural enforcement that the builder cannot see the test plan.
+The worker runs in a worktree where `.alchemy/` has been deleted, providing
+structural enforcement that the builder cannot see the test plan. It executes
+immediately with no proposal/approval ceremony.
 
-Wait for the orc to land its changes back to the main branch.
+Wait for the worker to land its changes back to the main branch.
 
 ### Step 3: Spawn VERIFY agent
 
@@ -145,7 +146,7 @@ still fail and why. Do not loop forever.
 - You are the orchestrator. You NEVER read source code. Only SPEC.md and TESTLOG.md.
 - You NEVER read `.alchemy/verify.mk` or any file in `.alchemy/`.
 - You NEVER use Edit or Write on source files. Only SPEC.md and TESTLOG.md.
-- The fulfill agent runs in a korc worktree where `.alchemy/` does not exist.
+- The fulfill agent runs in an alchemy-worker worktree where `.alchemy/` does not exist.
 - The verifier runs in the main worktree where `.alchemy/verify.mk` is available.
 - The verifier NEVER sees TESTLOG.md. The builder deletes it after reading.
 - The builder checks boxes as progress markers. The verifier unchecks everything

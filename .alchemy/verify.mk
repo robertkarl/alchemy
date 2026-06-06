@@ -80,13 +80,17 @@ check-loop-behavior:
 	@grep -qi 'lock\|immutable\|never.*modif\|do not.*modif\|not.*modified' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not state spec/tests are locked during loop"; exit 1; }
 	@echo "PASS"
 
-# 8. All agents spawned via Agent tool with mode: "auto"; no team_name etc.
+# 8. Fulfill spawned via /alchemy-worker in isolated worktree; .alchemy/ deleted before launch
 check-agent-spawn:
 	@echo "--- check-agent-spawn ---"
-	@grep -q 'Agent' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not reference Agent tool"; exit 1; }
-	@grep -q 'mode.*auto\|"auto"' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not specify mode auto"; exit 1; }
-	@# Must NOT mention team_name as something to use
-	@! grep -q 'team_name.*=' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize sets team_name (should not)"; exit 1; }
+	@# alchemy-worker skill must exist
+	@test -f $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker skill not found"; exit 1; }
+	@# alchemy-worker must delete .alchemy/ from worktree
+	@grep -q 'rm.*-rf.*\.alchemy' $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker does not delete .alchemy/ from worktree"; exit 1; }
+	@# alchemy-worker must not have proposal/approval ceremony
+	@grep -qi 'no.*proposal\|no.*approval\|execute.*immediately\|immediately' $(SKILLS_DIR)/alchemy-worker/SKILL.md || { echo "FAIL: alchemy-worker still has proposal/approval ceremony"; exit 1; }
+	@# alchemize must reference alchemy-worker for fulfill
+	@grep -q 'alchemy-worker' $(SKILLS_DIR)/alchemize/SKILL.md || { echo "FAIL: alchemize does not use alchemy-worker for fulfill"; exit 1; }
 	@echo "PASS"
 
 # 9. codereview and shipit updated for four-phase structure
@@ -103,7 +107,7 @@ check-installer:
 	@test -f uninstall.sh || { echo "FAIL: uninstall.sh not found"; exit 1; }
 	@# The installer uses a glob over skills/*, so it picks up any new skill dirs automatically.
 	@# Verify the expected skill directories exist.
-	@for skill in mkspec encode fulfill verify alchemize codereview shipit; do \
+	@for skill in mkspec encode fulfill verify alchemize alchemy-worker codereview shipit; do \
 		test -d $(SKILLS_DIR)/$$skill || { echo "FAIL: skills/$$skill directory missing"; exit 1; }; \
 	done
 	@echo "PASS"
