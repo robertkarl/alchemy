@@ -7,9 +7,8 @@ description: >-
 context: conversation
 effort: max
 allowed-tools:
+  - Agent
   - Read
-  - Write
-  - Bash(*)
 ---
 
 # /alchemy-worker
@@ -24,84 +23,38 @@ The caller provides:
 - **slug**: short identifier for the worktree/branch (default: `alchemy-work`)
 - **context_files**: files the worker should read first (optional)
 
-## Procedure
+## How to spawn the worker
 
-### 1. Write the prompt file
+Use the **Agent** tool with `isolation: "worktree"`. This is the only correct way.
 
-Write `/tmp/alchemy-worker-<slug>.prompt.md` with the caller's task.
-Structure:
+Do NOT use `claude -p`, Bash, iTerm2, osascript, or any other shell-based approach.
 
-```markdown
-# Alchemy Worker Task
+### Step 1: Read context files
 
-<task from caller>
+Read any files the worker will need (SPEC.md, context_files) so you can include
+their content in the prompt.
 
-## Rules
+### Step 2: Call the Agent tool
 
-1. Execute immediately. No proposals, no approval gates, no "commit/land?" prompts.
-2. Read the files listed below for context, then do the work.
+```
+Agent(
+  description: "<slug>: <short task description>",
+  prompt: "<full task prompt, including rules below>",
+  isolation: "worktree",
+  mode: "bypassPermissions"
+)
+```
+
+Include these rules in the prompt you pass to the Agent:
+
+1. Execute immediately. No proposals, no approval gates.
+2. Read the files listed for context, then do the work.
 3. Commit your work with descriptive messages as you go.
 4. Everything is local. NEVER `git push`.
-5. When done, land your changes:
-   - `git rebase <base-branch>`
-   - `git -C ../.. merge --ff-only alchemy/<slug>`
-   - Stop. Do NOT push.
-6. Write a summary to `/tmp/alchemy-worker-<slug>_summary.md` (2-4 sentences).
+5. Delete the `.alchemy/` directory from your worktree before starting work.
 
-## Read these files first
+### Step 3: Report
 
-<context_files list>
-```
-
-### 2. Create worktree, delete .alchemy/, launch
-
-Run this as a single bash command (substitute SLUG and BASE_BRANCH):
-
-```bash
-set -euo pipefail
-SLUG="<slug>"
-PROMPT_FILE="/tmp/alchemy-worker-<slug>.prompt.md"
-
-REPO_DIR="$(git rev-parse --show-toplevel)"
-WORKTREE="${REPO_DIR}/.worktrees/${SLUG}"
-BRANCH="alchemy/${SLUG}"
-BASE_BRANCH="$(git branch --show-current)"
-
-# Prune stale worktrees
-git worktree prune 2>/dev/null
-
-# Clean up if this slug was used before
-if git worktree list --porcelain | grep -q "worktree ${WORKTREE}$"; then
-    git worktree remove --force "${WORKTREE}" 2>/dev/null || true
-fi
-if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
-    git branch -D "${BRANCH}" 2>/dev/null || true
-fi
-
-# Create worktree
-mkdir -p "${REPO_DIR}/.worktrees"
-git worktree add "${WORKTREE}" -b "${BRANCH}" HEAD
-
-# Delete .alchemy/ so the worker cannot see the test plan
-rm -rf "${WORKTREE}/.alchemy"
-
-# Launch in new iTerm2 window without stealing focus
-CMD="cd $(printf '%q' "${WORKTREE}") && claude -p 'Read ${PROMPT_FILE} for your task instructions.'"
-
-osascript \
-    -e 'tell application "iTerm2"' \
-    -e '  create window with default profile' \
-    -e '  tell current session of current window' \
-    -e "    write text \"${CMD}\"" \
-    -e '  end tell' \
-    -e 'end tell' \
-    -e 'tell application "System Events" to set frontmost of process "iTerm2" to false'
-
-echo "Worker '${SLUG}' launched (branch: ${BRANCH}, base: ${BASE_BRANCH})"
-```
-
-### 3. Report
-
-Tell the caller: the worker is running. It will write a summary to
-`/tmp/alchemy-worker-<slug>_summary.md` when done. The caller should
-wait for the summary file to appear, then read SPEC.md to check progress.
+The Agent tool returns results when the worker finishes. Report the outcome
+to the caller. If the worker made changes, the worktree path and branch are
+included in the result.
